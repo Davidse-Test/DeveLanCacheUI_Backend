@@ -69,7 +69,26 @@
             }
             else if (CacheIdentifier == "epicgames")
             {
-                DownloadIdentifier = "unknown";
+                // Extract Epic manifest identifier for manifests
+                if (Request.Contains("/manifest/"))
+                {
+                    var urlPart = Request.Split(' ')[1];
+                    var splittedUrl = urlPart.Split('/');
+                    
+                    // Attempt to get a meaningful identifier from the path
+                    if (splittedUrl.Length >= 4 && splittedUrl[1] == "manifest")
+                    {
+                        DownloadIdentifier = splittedUrl[2];
+                    }
+                    else
+                    {
+                        DownloadIdentifier = "epicmanifest";
+                    }
+                }
+                else
+                {
+                    DownloadIdentifier = "unknown";
+                }
             }
             else if (CacheIdentifier == "riot")
             {
