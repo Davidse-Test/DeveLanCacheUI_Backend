@@ -6,6 +6,7 @@
         public DbSet<DbDownloadEvent> DownloadEvents => Set<DbDownloadEvent>();
         public DbSet<DbSetting> Settings => Set<DbSetting>();
         public DbSet<DbSteamManifest> SteamManifests => Set<DbSteamManifest>();
+        public DbSet<DbEpicManifest> EpicManifests => Set<DbEpicManifest>();
 
         public DeveLanCacheUIDbContext(DbContextOptions options) : base(options)
         {

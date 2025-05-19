@@ -72,6 +72,7 @@ namespace DeveLanCacheUI_Backend
 
             builder.Services.AddSingleton<RoboHashCache>();
             builder.Services.AddSingleton<SteamManifestService>();
+            builder.Services.AddSingleton<EpicManifestService>();
 
             if (deveLanCacheConfiguration.Feature_DirectSteamIntegration)
             {

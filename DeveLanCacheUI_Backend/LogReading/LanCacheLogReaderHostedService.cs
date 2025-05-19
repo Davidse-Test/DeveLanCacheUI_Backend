@@ -10,6 +10,7 @@ namespace DeveLanCacheUI_Backend.LogReading
         private readonly IServiceProvider _services;
         private readonly DeveLanCacheConfiguration _deveLanCacheConfiguration;
         private readonly SteamManifestService _steamManifestService;
+        private readonly EpicManifestService _epicManifestService;
         private readonly ILogger<LanCacheLogReaderHostedService> _logger;
 
         /// <summary>
@@ -44,11 +45,13 @@ namespace DeveLanCacheUI_Backend.LogReading
         public LanCacheLogReaderHostedService(IServiceProvider services,
             DeveLanCacheConfiguration deveLanCacheConfiguration,
             SteamManifestService steamManifestService,
+            EpicManifestService epicManifestService,
             ILogger<LanCacheLogReaderHostedService> logger)
         {
             _services = services;
             _deveLanCacheConfiguration = deveLanCacheConfiguration;
             _steamManifestService = steamManifestService;
+            _epicManifestService = epicManifestService;
             _logger = logger;
         }
 
@@ -127,9 +130,15 @@ namespace DeveLanCacheUI_Backend.LogReading
                                 }
                                 if (lanCacheLogLine.CacheIdentifier == "steam" && lanCacheLogLine.Request.Contains("/manifest/") && DateTime.Now < lanCacheLogLine.DateTime.AddDays(14))
                                 {
-                                    _logger.LogInformation("Found manifest for Depot: {DownloadIdentifier}", lanCacheLogLine.DownloadIdentifier);
+                                    _logger.LogInformation("Found Steam manifest for Depot: {DownloadIdentifier}", lanCacheLogLine.DownloadIdentifier);
                                     var ttt = lanCacheLogLine;
                                     _steamManifestService.TryToDownloadManifest(ttt);
+                                }
+                                
+                                if (lanCacheLogLine.CacheIdentifier == "epicgames" && lanCacheLogLine.Request.Contains("/manifest/") && DateTime.Now < lanCacheLogLine.DateTime.AddDays(14))
+                                {
+                                    _logger.LogInformation("Found Epic manifest: {DownloadIdentifier}", lanCacheLogLine.DownloadIdentifier);
+                                    _epicManifestService.TryToDownloadManifest(lanCacheLogLine);
                                 }
 
                                 var cacheKey = $"{lanCacheLogLine.CacheIdentifier}_||_{lanCacheLogLine.DownloadIdentifier}_||_{lanCacheLogLine.RemoteAddress}";
