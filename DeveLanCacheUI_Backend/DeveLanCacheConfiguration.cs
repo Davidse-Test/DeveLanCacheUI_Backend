@@ -6,6 +6,10 @@
         public required string LanCacheLogsDirectory { get; set; }
         public required bool Feature_DirectSteamIntegration { get; set; }
         public required bool Feature_SkipLinesBasedOnBytesRead { get; set; }
+        // Log rotation and compression settings
+        public bool Feature_ReadRotatedLogs { get; set; } = true;
+        public int RotatedLogsToRead { get; set; } = 5;
+        public bool Feature_ReadCompressedLogs { get; set; } = true;
         // List of client IPs to exclude from statistics
         public string ExcludedClientIps { get; set; }
 
