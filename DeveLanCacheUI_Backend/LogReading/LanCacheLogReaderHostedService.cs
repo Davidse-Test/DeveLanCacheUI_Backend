@@ -90,6 +90,13 @@ namespace DeveLanCacheUI_Backend.LogReading
             {
                 _logger.LogInformation("Processing log file: {LogFile}", logFile);
                 
+                // Reset total bytes read for each file except the main access.log
+                if (Path.GetFileName(logFile) != "access.log")
+                {
+                    // For rotated or compressed logs, we want to read the whole file
+                    TotalBytesRead = 0;
+                }
+                
                 using (var stream = CreateStreamForLogFile(logFile))
                 {
                     if (stream == null)
@@ -106,8 +113,8 @@ namespace DeveLanCacheUI_Backend.LogReading
 
                     foreach (var currentSet in batches)
                     {
-                        _logger.LogInformation("Processing {Count} lines... First DateTime: {FirstDate} (Total processed: {TotalLinesProcessed})",
-                            currentSet.Count, currentSet.FirstOrDefault()?.DateTime, totalLinesProcessed);
+                        _logger.LogInformation("Processing {Count} lines from {LogFile}... First DateTime: {FirstDate} (Total processed: {TotalLinesProcessed})",
+                            currentSet.Count, Path.GetFileName(logFile), currentSet.FirstOrDefault()?.DateTime, totalLinesProcessed);
                         totalLinesProcessed += currentSet.Count;
 
                         await using (var scope = _services.CreateAsyncScope())
@@ -191,17 +198,20 @@ namespace DeveLanCacheUI_Backend.LogReading
                                     }
                                 }
 
-                                //Save total bytes read
-                                var totalByteReadSetting = await dbContext.Settings.FirstOrDefaultAsync(t => t.Key == DbSetting.SettingKey_TotalBytesRead);
-                                if (totalByteReadSetting == null)
+                                // Save total bytes read only for the main log file
+                                if (Path.GetFileName(logFile) == "access.log")
                                 {
-                                    totalByteReadSetting = new DbSetting()
+                                    var totalByteReadSetting = await dbContext.Settings.FirstOrDefaultAsync(t => t.Key == DbSetting.SettingKey_TotalBytesRead);
+                                    if (totalByteReadSetting == null)
                                     {
-                                        Key = DbSetting.SettingKey_TotalBytesRead
-                                    };
-                                    await dbContext.Settings.AddAsync(totalByteReadSetting);
+                                        totalByteReadSetting = new DbSetting()
+                                        {
+                                            Key = DbSetting.SettingKey_TotalBytesRead
+                                        };
+                                        await dbContext.Settings.AddAsync(totalByteReadSetting);
+                                    }
+                                    totalByteReadSetting.Value = TotalBytesRead.ToString();
                                 }
-                                totalByteReadSetting.Value = TotalBytesRead.ToString();
 
                                 await dbContext.SaveChangesAsync();
                                 FrontendRefresherService.RequireFrontendRefresh();
